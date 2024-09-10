@@ -1,5 +1,6 @@
 import * as Yup from 'yup'
 import Categories from '../models/Categories'
+import Exercicies from '../models/Exercicies'
 
 class CategoryController {
   async store(request, response) {
@@ -21,7 +22,22 @@ class CategoryController {
   }
 
   async index(request, response) {
-    const category = await Category.findAll()
+    const category = await Categories.findAll({
+      order: [['createdAt', 'ASC']],
+      include: [
+        {
+          model: Exercicies,
+          as: 'exercicies',
+          attributes: [
+            'id',
+            'url_video',
+            'name_exercicies',
+            'description_exercicies',
+            'category_id'
+          ]
+        }
+      ]
+    })
     return response.json(category)
   }
 }

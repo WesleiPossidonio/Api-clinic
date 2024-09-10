@@ -45,7 +45,7 @@ class PatientData extends Model {
 
     this.hasMany(models.ExerciseInformation, {
       foreignKey: 'patinent_id',
-      as: 'patient_exercises',
+      as: 'exercise_information',
     });
   }
 

@@ -22,7 +22,7 @@ class Categories extends Model {
 
     this.hasMany(models.PatientData, {
       foreignKey: 'list_of_exercises_id',
-      as: 'patients',
+      as: 'list_execicies',
     });
   }
 }

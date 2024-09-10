@@ -35,6 +35,6 @@ routes.post('/createExercises', upload.single('url_video'), uploadToGoogleDrive,
 routes.get('/getExercises', ExercisesController.index)
 
 routes.post('/createPatient', PatientDataController.store)
-routes.post('/getPatient', PatientDataController.index)
+routes.get('/getPatient', PatientDataController.index)
 
 export default routes

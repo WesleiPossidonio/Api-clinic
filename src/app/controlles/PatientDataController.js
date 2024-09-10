@@ -1,5 +1,8 @@
 import * as Yup from 'yup'
 import PatientData from '../models/PatientData'
+import ExerciseInformation from '../models/ExerciseInformation'
+import Categories from '../models/Categories'
+import Exercicies from '../models/Exercicies'
 
 class PatientDataController {
   async store(request, response) {
@@ -26,7 +29,7 @@ class PatientDataController {
     } = request.body
 
     const patientDatExists = await PatientData.findOne({
-      where: { email },
+      where: { email_patient: email },
     });
 
     if ( patientDatExists) {
@@ -46,8 +49,40 @@ class PatientDataController {
   }
 
   async index(request, response) {
-    const listPatient = await PatientData.findAll()
-    return response.json(listPatient)
+    const listPatient = await PatientData.findAll({
+      order: [['createdAt', 'ASC']],
+      include: [
+        {
+          model: ExerciseInformation,
+          as: 'exercise_information', // Verifique se o alias 'exercise_information' está correto
+          attributes: [
+            'patinent_id',
+            'name_exercise',
+            'number_of_repetitions',
+            'resume_exercise',
+          ],
+        },
+        {
+          model: Categories,
+          as: 'list_execicies', // Verifique se o alias está correto
+          attributes: ['name_category'],
+          include: [
+            {
+              model: Exercicies,
+              as: 'exercicies', // Verifique se o alias 'exercicies' está correto
+              attributes: [
+                'id',
+                'url_video',
+                'name_exercicies',
+                'description_exercicies',
+                'category_id',
+              ]
+            }
+          ]
+        }
+      ]
+    });
+    return response.json(listPatient);
   }
 
   async update(request, response) {

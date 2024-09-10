@@ -1,5 +1,9 @@
 import * as Yup from 'yup'
 import Doctors from '../models/doctors'
+import PatientData from '../models/PatientData'
+import ExerciseInformation from '../models/ExerciseInformation'
+import Categories from '../models/Categories'
+import Exercicies from '../models/Exercicies'
 
 class DoctorsController {
   async store(request, response) {
@@ -49,7 +53,52 @@ class DoctorsController {
   }
 
   async index(request, response) {
-    const listDoctors = await Doctors.findAll()
+    const listDoctors = await Doctors.findAll({
+      order: [['createdAt', 'ASC']],
+      include: [
+        {
+          model: PatientData,
+          as: 'patients',
+          attributes: [
+            'id',
+            'list_of_exercises_id',
+            'doctor_id',
+            'name_patient',
+            'email_patient',
+          ], 
+          include: [
+            {
+              model: ExerciseInformation,
+              as:  'exercise_information',
+              attributes: [
+                'patinent_id',
+                'name_exercise',
+                'number_of_repetitions',
+                'resume_exercise',
+              ], 
+            }, 
+            {
+              model: Categories,
+              as: 'list_execicies',
+              attributes: ['name_category'],
+              include: [
+                {
+                  model: Exercicies,
+                  as: 'exercicies', 
+                  attributes: [
+                    'id',
+                    'url_video',
+                    'name_exercicies',
+                    'description_exercicies',
+                    'category_id',
+                  ]
+                }
+              ]
+            }
+          ],
+        }
+      ]
+    })
     return response.json(listDoctors)
   }
 
