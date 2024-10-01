@@ -17,6 +17,7 @@ class Doctors extends Model {
         admin: Sequelize.BOOLEAN,
         password: Sequelize.VIRTUAL,
         password_hash: Sequelize.STRING,
+        type_user: Sequelize.STRING,
       },
       {
         sequelize,
@@ -38,10 +39,16 @@ class Doctors extends Model {
       as: 'patients',
     });
 
+    this.hasMany(models.Schedules, {
+      foreignKey: 'doctor_id', 
+      as: 'doctor_schedules',
+    });
+
     this.hasMany(models.ConsultationData, {
       foreignKey: 'doctor_id', 
       as: 'consultations',
     });
+
   }
 }
 

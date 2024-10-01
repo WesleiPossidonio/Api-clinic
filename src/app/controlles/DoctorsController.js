@@ -1,9 +1,11 @@
 import * as Yup from 'yup'
-import Doctors from '../models/doctors'
+
 import PatientData from '../models/PatientData'
 import ExerciseInformation from '../models/ExerciseInformation'
 import Categories from '../models/Categories'
 import Exercicies from '../models/Exercicies'
+import Doctors from '../models/Doctors'
+import Schedules from '../models/Schedules'
 
 class DoctorsController {
   async store(request, response) {
@@ -12,6 +14,7 @@ class DoctorsController {
       number_register: Yup.string().required(),
       email: Yup.string().email().required(),
       position: Yup.string().required(),
+      type_user: Yup.string().required(),
       admin: Yup.boolean().required(),
       password: Yup.string().required().min(6),
     })
@@ -28,7 +31,8 @@ class DoctorsController {
       email, 
       position, 
       admin, 
-      password 
+      password,
+      type_user
     } = request.body
 
     const DoctorExists = await Doctors.findOne({
@@ -45,7 +49,8 @@ class DoctorsController {
       email, 
       position, 
       admin, 
-      password 
+      password,
+      type_user
     }
 
     const createDoctors = await Doctors.create(dataDoctor)
@@ -96,6 +101,15 @@ class DoctorsController {
               ]
             }
           ],
+        }, {
+          model: Schedules,
+          as: 'doctor_schedules',
+          attributes: [
+            'id',
+            'date',
+            'hours',
+            'state_schedules',
+          ], 
         }
       ]
     })

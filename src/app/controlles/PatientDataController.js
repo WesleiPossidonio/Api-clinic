@@ -11,6 +11,7 @@ class PatientDataController {
       doctor_id: Yup.string().required(),
       name_patient: Yup.string().required(),
       email_patient: Yup.string().required(),
+      type_user: Yup.string().required(),
       password: Yup.string().optional().min(6),
     })
 
@@ -25,14 +26,15 @@ class PatientDataController {
       email_patient, 
       name_patient, 
       doctor_id,
-      list_of_exercises_id
+      list_of_exercises_id,
+      type_user
     } = request.body
 
     const patientDatExists = await PatientData.findOne({
-      where: { email_patient: email },
+      where: { email_patient: email_patient},
     });
 
-    if ( patientDatExists) {
+    if (patientDatExists) {
       return response.status(400).json({ error: 'Email já cadastrado' });
     }
 
@@ -41,7 +43,8 @@ class PatientDataController {
       email_patient, 
       name_patient, 
       doctor_id,
-      list_of_exercises_id
+      list_of_exercises_id,
+      type_user
     }
 
     const createdataPatient = await PatientData.create(dataPatient)

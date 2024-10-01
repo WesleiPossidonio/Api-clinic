@@ -3,20 +3,23 @@ import Sequelize from 'sequelize'
 import configDatabase from '../config/database'
 import PatientData from '../app/models/PatientData'
 import Exercicies from '../app/models/Exercicies'
-import Doctors from '../app/models/doctors'
 import ConsultationData from '../app/models/ConsultationData'
 import Categories from '../app/models/Categories'
 import UserReception from '../app/models/UserReception'
 import ExerciseInformation from '../app/models/ExerciseInformation'
+import Schedules from '../app/models/Schedules'
+import Doctors from '../app/models/Doctors'
+
 
 const models = [
   PatientData, 
   Exercicies, 
-  Doctors, 
   ConsultationData, 
   Categories, 
   UserReception,
   ExerciseInformation,
+  Schedules,
+  Doctors
 ]
 
 class Database {

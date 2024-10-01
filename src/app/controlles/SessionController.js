@@ -2,9 +2,9 @@ import * as yup from 'yup'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import authConfig from '../../config/auth'
-import Doctors from '../models/doctors'
 import UserReception from '../models/UserReception'
 import PatientData from '../models/PatientData'
+import Doctors from '../models/Doctors'
 
 class SessionController {
   async store(request, response) {

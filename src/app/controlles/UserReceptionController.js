@@ -9,6 +9,7 @@ class UserReceptionController {
       registration_number: Yup.string().required(),
       admin: Yup.boolean().required(),
       password: Yup.string().required().min(6),
+      type_user: Yup.string().required(),
     })
 
     try {
@@ -22,7 +23,8 @@ class UserReceptionController {
       registration_number, 
       email, 
       name,
-      password
+      password,
+      type_user
     } = request.body
     
     const patientDatExists = await UserReception.findOne({
@@ -39,6 +41,7 @@ class UserReceptionController {
       registration_number, 
       email, 
       name,
+      type_user
     }
 
     const createUserReception = await UserReception.create(dataUserReception)

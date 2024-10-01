@@ -10,6 +10,7 @@ import SessionController from './app/controlles/SessionController'
 import { upload, uploadToGoogleDrive } from './config/multer'; 
 
 import authMiddlewares from './app/meddlewares/auth'
+import SchedulesController from './app/controlles/SchedulesController'
 
 const routes = new Router()
 
@@ -24,6 +25,9 @@ routes.get('/getListConsult', ConsultationDataController.index)
 
 routes.post('/createDoctor', DoctorsController.store)
 routes.get('/getListDoctor', DoctorsController.index)
+
+routes.post('/createSchedules', SchedulesController.store)
+routes.get('/getListSchedules', SchedulesController.index)
 
 routes.post('/createUserReception', UserReceptionController.store)
 routes.get('/getUserReception', UserReceptionController.index)

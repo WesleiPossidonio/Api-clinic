@@ -16,6 +16,7 @@ class UserReception extends Model {
         admin: Sequelize.BOOLEAN,
         password: Sequelize.VIRTUAL,
         password_hash: Sequelize.STRING,
+        type_user: Sequelize.STRING,
       },
       {
         sequelize,
