@@ -71,6 +71,7 @@ class SessionController {
           email: user.email,
           position: user.position,
           admin: user.admin,
+          type_user: user.type_user
         }
         break
       case 'userReception':
@@ -80,6 +81,7 @@ class SessionController {
           registration_number: user.registration_number,
           email: user.email,
           admin: user.admin,
+          type_user: user.type_user
         }
         break
       case 'patient':
@@ -89,6 +91,7 @@ class SessionController {
           email_patient: user.email_patient,
           doctor_id: user.doctor_id,
           list_of_exercises_id: user.list_of_exercises_id,
+          type_user: user.type_user
         }
         break
       default:

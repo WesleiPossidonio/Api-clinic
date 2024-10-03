@@ -16,6 +16,7 @@ class PatientData extends Model {
         email_patient: Sequelize.STRING,
         password: Sequelize.VIRTUAL,
         password_hash: Sequelize.STRING,
+        update_number: Sequelize.STRING, 
         type_user: Sequelize.STRING,
       },
       {

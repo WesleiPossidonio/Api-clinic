@@ -3,6 +3,7 @@ import PatientData from '../models/PatientData'
 import ExerciseInformation from '../models/ExerciseInformation'
 import Categories from '../models/Categories'
 import Exercicies from '../models/Exercicies'
+import { SendMailUpdatePassword } from '../sendMail/updatePassowrd'
 
 class PatientDataController {
   async store(request, response) {
@@ -21,31 +22,54 @@ class PatientDataController {
       return response.status(400).json({ error: err.errors })
     }
 
-    const { 
-      password, 
-      email_patient, 
-      name_patient, 
+    const {
+      password,
+      email_patient,
+      name_patient,
       doctor_id,
       list_of_exercises_id,
-      type_user
+      type_user,
     } = request.body
 
     const patientDatExists = await PatientData.findOne({
-      where: { email_patient: email_patient},
-    });
+      where: { email_patient: email_patient },
+    })
 
     if (patientDatExists) {
-      return response.status(400).json({ error: 'Email já cadastrado' });
+      return response.status(400).json({ error: 'Email já cadastrado' })
     }
 
+    function generateVerificationCode() {
+      // Gera um número aleatório entre 100000 e 999999
+      const verificationCode = Math.floor(100000 + Math.random() * 900000)
+      return verificationCode
+    }
+
+    const numberVerification = generateVerificationCode()
+
     const dataPatient = {
-      password, 
-      email_patient, 
-      name_patient, 
+      password,
+      email_patient,
+      name_patient,
       doctor_id,
       list_of_exercises_id,
-      type_user
+      type_user,
+      update_number: numberVerification,
     }
+
+    const dataSendMail = {
+      name_patient,
+      email_patient,
+      update_number: numberVerification,
+    }
+
+    console.log(dataSendMail)
+
+    const mailResponse = await SendMailUpdatePassword(dataSendMail);
+
+    if (mailResponse.status !== 200) {
+      return response.status(mailResponse.status).json({ error: mailResponse.error });
+    }    
 
     const createdataPatient = await PatientData.create(dataPatient)
     return response.json(createdataPatient)
@@ -79,13 +103,13 @@ class PatientDataController {
                 'name_exercicies',
                 'description_exercicies',
                 'category_id',
-              ]
-            }
-          ]
-        }
-      ]
-    });
-    return response.json(listPatient);
+              ],
+            },
+          ],
+        },
+      ],
+    })
+    return response.json(listPatient)
   }
 
   async update(request, response) {
@@ -93,6 +117,7 @@ class PatientDataController {
       name_patient: Yup.string().optional(),
       email_patient: Yup.string().optional(),
       password: Yup.string().optional().min(6),
+      update_number: Yup.string().min(6).max(6).required()
     })
 
     try {
@@ -104,18 +129,21 @@ class PatientDataController {
     const { id } = request.params
 
     const patientExists = await PatientData.findOne({
-      where: { id },
+      where: { 
+        where: {
+          [Sequelize.Op.or]: [
+            { id }, 
+            { update_number } // Usando Sequelize.Op.or para buscar por id ou email
+          ]
+        }
+       },
     })
 
     if (!patientExists) {
       return response.status(404).json({ error: 'Paciente não encontrado!' })
     }
 
-    const { 
-      password,
-      email_patient,
-      name_patient,
-    } = request.body
+    const { password, email_patient, name_patient } = request.body
 
     const newDataPatient = {
       password,
@@ -126,7 +154,6 @@ class PatientDataController {
     const updateDataPatient = await PatientData.update(newDataPatient)
     return response.status(201).json(updateDataPatient)
   }
-
 }
 
 export default new PatientDataController()

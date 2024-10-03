@@ -85,7 +85,7 @@ class DoctorsController {
             {
               model: Categories,
               as: 'list_execicies',
-              attributes: ['name_category'],
+              attributes: ['name_category', 'id'],
               include: [
                 {
                   model: Exercicies,
