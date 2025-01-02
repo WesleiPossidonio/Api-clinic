@@ -63,8 +63,6 @@ class PatientDataController {
       update_number: numberVerification,
     }
 
-    console.log(dataSendMail)
-
     const mailResponse = await SendMailUpdatePassword(dataSendMail);
 
     if (mailResponse.status !== 200) {
@@ -117,43 +115,56 @@ class PatientDataController {
       name_patient: Yup.string().optional(),
       email_patient: Yup.string().optional(),
       password: Yup.string().optional().min(6),
-      update_number: Yup.string().min(6).max(6).required()
-    })
-
+      update_number: Yup.string().min(6).max(6).optional()
+    });
+  
     try {
-      await schema.validate(request.body, { abortEarly: false })
+      await schema.validate(request.body, { abortEarly: false });
     } catch (err) {
-      return response.status(400).json({ error: err.errors })
+      return response.status(400).json({ error: err.errors });
     }
-
-    const { id } = request.params
-
-    const patientExists = await PatientData.findOne({
-      where: { 
-        where: {
-          [Sequelize.Op.or]: [
-            { id }, 
-            { update_number } // Usando Sequelize.Op.or para buscar por id ou email
-          ]
-        }
-       },
-    })
-
-    if (!patientExists) {
-      return response.status(404).json({ error: 'Paciente não encontrado!' })
+  
+    const { password, email_patient, name_patient, update_number } = request.body; // Extraindo update_number
+    const { id } = request.params;
+  
+    // Verifica se update_number foi fornecido
+    if (update_number !== undefined) {
+      const patientExists = await PatientData.findOne({
+        where: { update_number }
+      });
+  
+      if (!patientExists) {
+        return response.status(404).json({ error: 'Paciente não encontrado!' });
+      }
+  
+      const newDataPatient = {
+        password,
+        name_patient
+      };
+  
+      await PatientData.update(newDataPatient, { where: { update_number } });
+      return response.status(200).json({ message: 'Paciente atualizado com sucesso!' });
     }
-
-    const { password, email_patient, name_patient } = request.body
-
-    const newDataPatient = {
+  
+    // Caso não haja update_number, busca pelo id
+    const patientExistsById = await PatientData.findOne({
+      where: { id }
+    });
+  
+    if (!patientExistsById) {
+      return response.status(404).json({ error: 'Paciente não encontrado!' });
+    }
+  
+    const newDataPatientById = {
       password,
       email_patient,
-      name_patient,
-    }
-
-    const updateDataPatient = await PatientData.update(newDataPatient)
-    return response.status(201).json(updateDataPatient)
+      name_patient
+    };
+  
+    await PatientData.update(newDataPatientById, { where: { id } });
+    return response.status(200).json({ message: 'Paciente atualizado com sucesso!' });
   }
+  
 }
 
 export default new PatientDataController()
