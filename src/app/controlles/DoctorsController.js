@@ -118,30 +118,32 @@ class DoctorsController {
 
   async update(request, response) {
     const schema = Yup.object().shape({
-      name: Yup.string().opcional(),
-      number_register: Yup.string().opcional(),
-      email: Yup.string().email().opcional(),
-      position: Yup.string().opcional(),
-      admin: Yup.boolean().opcional(),
-      password: Yup.string().opcional().min(6),
-    })
-
+      name: Yup.string().optional(),
+      number_register: Yup.string().optional(),
+      email: Yup.string().email().optional(),
+      position: Yup.string().optional(),
+      admin: Yup.boolean().optional(),
+      password: Yup.string().optional().min(6),
+    });
+  
     try {
-      await schema.validate(request.body, { abortEarly: false })
+      await schema.validate(request.body, { abortEarly: false });
     } catch (err) {
-      return response.status(400).json({ error: err.errors })
+      return response.status(400).json({ error: err.errors });
     }
-
-    const { id } = request.params
-
-    const companyExists = await Doctors.findOne({
+  
+    const { id } = request.params;
+  
+    // Procurar pelo médico no banco
+    const doctor = await Doctors.findOne({
       where: { id },
-    })
-
-    if (!companyExists) {
-      return response.status(404).json({ error: 'Usuário Não Encontrado' })
+    });
+  
+    if (!doctor) {
+      return response.status(404).json({ error: 'Usuário Não Encontrado' });
     }
-
+  
+    // Extrair os dados do corpo da requisição
     const { 
       name, 
       number_register, 
@@ -149,21 +151,22 @@ class DoctorsController {
       position, 
       admin, 
       password 
-    } = request.body
-
-    const dataDoctor = {
-      name, 
-      number_register, 
-      email, 
-      position, 
-      admin, 
-      password 
-    }
-
-    const updateDataDoctors = await Doctors.update(dataDoctor)
-    return response.status(201).json(updateDataDoctors)
+    } = request.body;
+  
+    // Atualizar os campos fornecidos
+    if (name) doctor.name = name;
+    if (number_register) doctor.number_register = number_register;
+    if (email) doctor.email = email;
+    if (position) doctor.position = position;
+    if (admin !== undefined) doctor.admin = admin; // Verifica explicitamente valores booleanos
+    if (password) doctor.password = password; // Isso acionará o hook para gerar o hash da senha
+  
+    // Salvar as alterações no banco
+    await doctor.save();
+  
+    return response.status(200).json({ message: 'Dados do médico atualizados com sucesso!' });
   }
-
+  
 }
 
 export default new DoctorsController()

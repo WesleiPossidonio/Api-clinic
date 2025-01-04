@@ -86,16 +86,15 @@ class UserReceptionController {
       name,
     } = request.body
 
-    const newDataUserReception = {
-      password, 
-      admin, 
-      registration_number, 
-      email, 
-      name,
-    }
-
-    const updateUserReception = await UserReception.update(newDataUserReception)
-    return response.status(201).json(updateUserReception)
+    if (name) userReceptionExists.name = name;
+    if (registration_number) userReceptionExists.registration_number = name;
+    if (email) userReceptionExists.email = email;
+    if (admin !== undefined) userReceptionExists.admin = admin; // Verifica explicitamente valores booleanos
+    if (password) userReceptionExists.password = password; // Isso acionará o hook para gerar o hash da senha
+  
+    // Salvar as alterações no banco
+    await userReceptionExists.save();
+    return response.status(200).json({ message: 'Dados do médico atualizados com sucesso!' });
   }
 
 }

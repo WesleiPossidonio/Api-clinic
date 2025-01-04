@@ -115,7 +115,7 @@ class PatientDataController {
       name_patient: Yup.string().optional(),
       email_patient: Yup.string().optional(),
       password: Yup.string().optional().min(6),
-      update_number: Yup.string().min(6).max(6).optional()
+      update_number: Yup.string().min(6).max(6).optional(),
     });
   
     try {
@@ -124,46 +124,38 @@ class PatientDataController {
       return response.status(400).json({ error: err.errors });
     }
   
-    const { password, email_patient, name_patient, update_number } = request.body; // Extraindo update_number
+    const { password, email_patient, name_patient, update_number } = request.body;
     const { id } = request.params;
   
-    // Verifica se update_number foi fornecido
-    if (update_number !== undefined) {
-      const patientExists = await PatientData.findOne({
-        where: { update_number }
-      });
+    let patient;
   
-      if (!patientExists) {
+    // Verifica se `update_number` foi fornecido
+    if (update_number !== undefined) {
+      patient = await PatientData.findOne({ where: { update_number } });
+  
+      if (!patient) {
         return response.status(404).json({ error: 'Paciente não encontrado!' });
       }
+    } else {
+      // Busca pelo `id` caso `update_number` não tenha sido fornecido
+      patient = await PatientData.findOne({ where: { id } });
   
-      const newDataPatient = {
-        password,
-        name_patient
-      };
-  
-      await PatientData.update(newDataPatient, { where: { update_number } });
-      return response.status(200).json({ message: 'Paciente atualizado com sucesso!' });
+      if (!patient) {
+        return response.status(404).json({ error: 'Paciente não encontrado!' });
+      }
     }
   
-    // Caso não haja update_number, busca pelo id
-    const patientExistsById = await PatientData.findOne({
-      where: { id }
-    });
+    // Atualiza os dados do paciente
+    if (password) patient.password = password; // Isso acionará o hook para atualizar o hash
+    if (email_patient) patient.email_patient = email_patient;
+    if (name_patient) patient.name_patient = name_patient;
   
-    if (!patientExistsById) {
-      return response.status(404).json({ error: 'Paciente não encontrado!' });
-    }
+    // Salva as alterações no banco de dados
+    await patient.save();
   
-    const newDataPatientById = {
-      password,
-      email_patient,
-      name_patient
-    };
-  
-    await PatientData.update(newDataPatientById, { where: { id } });
     return response.status(200).json({ message: 'Paciente atualizado com sucesso!' });
   }
+  
   
 }
 
