@@ -23,11 +23,19 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-     hours: {
-        type: Sequelize.TEXT,
+      start_time: {
+        type: Sequelize.TIME,
+        allowNull: false,
+      },
+      end_time: {
+        type: Sequelize.TIME,
         allowNull: false,
       },
       state_schedules: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      google_event_id: {
         type: Sequelize.STRING,
         allowNull: false,
       },

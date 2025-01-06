@@ -1,6 +1,7 @@
 import express from 'express'
 import routes from './routes'
 import cors from 'cors'
+import session from 'express-session'
 
 import './database'
 
@@ -15,6 +16,13 @@ class App {
   middlewares() {
     this.app.use(express.json())
     this.app.use(cors())
+    this.app.use(
+      session({
+        secret: 'keyboard cat', // Substitua por um segredo seguro
+        resave: false,
+        saveUninitialized: true,
+      }),
+    )
   }
 
   routes() {

@@ -18,6 +18,8 @@ class Doctors extends Model {
         password: Sequelize.VIRTUAL,
         password_hash: Sequelize.STRING,
         type_user: Sequelize.STRING,
+        google_access_token: Sequelize.TEXT,
+        google_refresh_token: Sequelize.TEXT,
       },
       {
         sequelize,

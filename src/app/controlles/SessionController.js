@@ -29,9 +29,7 @@ class SessionController {
 
     // Função para verificar senha e retornar dados do usuário
     const checkUserAndPassword = async (user, passwordHash, typeUser) => {
-
       if (user && (await bcrypt.compare(password, passwordHash))) {
-        console.log('Usuário validado:', user.dataValues);
         return { user, typeUser };
       }
       return null;
@@ -41,31 +39,25 @@ class SessionController {
     let userData = null;
     
     const doctorExists = await Doctors.findOne({ where: { email } });
-    if (doctorExists) {
-      console.log('Médico encontrado:', doctorExists.dataValues);
-      userData = await checkUserAndPassword(doctorExists, doctorExists.password_hash, 'doctor');
-    }
-    
     const userReceptionExists = await UserReception.findOne({ where: { email } });
+    const patientExists = await PatientData.findOne({ where: { email_patient: email } });
+
+    if (doctorExists) {
+      userData = await checkUserAndPassword(doctorExists, doctorExists.password_hash, 'doctor');
+    } 
+    
     if (userReceptionExists && !userData) {
-      console.log('Recepcionista encontrado:', userReceptionExists.dataValues);
       userData = await checkUserAndPassword(userReceptionExists, userReceptionExists.password_hash, 'userReception');
     }
-    
-    const patientExists = await PatientData.findOne({ where: { email_patient: email } });
+
     if (patientExists && !userData) {
       userData = await checkUserAndPassword(patientExists, patientExists.password_hash, 'patient');
     }
     
-    // Se não encontrou o usuário ou a senha estiver incorreta
-    if (!userData) {
+    if(!userData) {
       console.log('Usuário ou senha incorretos');
       return emailPasswordIncorrect();
     }
-    
-    // Fluxo continua se userData não for nulo
-    console.log('Usuário autenticado:', userData);
-    
 
     const { user, typeUser } = userData
    

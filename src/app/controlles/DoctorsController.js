@@ -7,6 +7,14 @@ import Exercicies from '../models/Exercicies'
 import Doctors from '../models/Doctors'
 import Schedules from '../models/Schedules'
 
+import { google } from 'googleapis'
+
+const oauth2Client = new google.auth.OAuth2(
+  process.env.CLIENT_ID,
+  process.env.CLIENT_SECRET,
+  'http://localhost:3000/oauth2callback',
+)
+
 class DoctorsController {
   async store(request, response) {
     const schema = Yup.object().shape({
@@ -32,7 +40,7 @@ class DoctorsController {
       position, 
       admin, 
       password,
-      type_user
+      type_user,
     } = request.body
 
     const DoctorExists = await Doctors.findOne({
@@ -50,11 +58,32 @@ class DoctorsController {
       position, 
       admin, 
       password,
-      type_user
+      type_user,
     }
 
-    const createDoctors = await Doctors.create(dataDoctor)
-    return response.status(201).json(createDoctors)
+    try {
+      await Doctors.create(dataDoctor)
+      // return response.status(201).json(createDoctors)
+
+      const authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['https://www.googleapis.com/auth/calendar'],
+      });
+
+      // return response.status(201).json({
+      //   redirectUrl: authUrl, // Envie a URL de autenticação para que o cliente possa se conectar ao Google
+      // });
+
+      return response.status(201).json({
+        message: 'Doutor criado com sucesso!',
+        authUrl, // Envie a URL de autenticação para que o cliente possa se conectar ao Google
+      });
+
+    } catch (error) {
+      console.error('Erro ao criar doutor:', error);
+      return response.status(500).json({ error: 'Erro ao criar doutor' });
+    }
+
   }
 
   async index(request, response) {
@@ -107,7 +136,8 @@ class DoctorsController {
           attributes: [
             'id',
             'date',
-            'hours',
+            'start_time',
+            'end_time',
             'state_schedules',
           ], 
         }
@@ -165,6 +195,41 @@ class DoctorsController {
     await doctor.save();
   
     return response.status(200).json({ message: 'Dados do médico atualizados com sucesso!' });
+  }
+
+  async oauth2callback(request, response) {
+    const { code } = request.query // O código de autorização
+    const { CLIENT_ID, CLIENT_SECRET } = process.env
+
+    const oauth2Client = new google.auth.OAuth2(
+      CLIENT_ID,
+      CLIENT_SECRET,
+      'http://localhost:3000/oauth2callback',
+    )
+
+    try {
+      // Trocar o código de autorização pelo access token
+      const { tokens } = await oauth2Client.getToken(code)
+      const { access_token, refresh_token } = tokens
+
+      // Atualizar o banco de dados com os tokens do médico
+      const doctorId = request.session.doctorId
+      await Doctors.update(
+        {
+          google_access_token: access_token,
+          google_refresh_token: refresh_token,
+        },
+        { where: { id: doctorId } },
+      )
+
+      // Redirecionar ou enviar uma resposta de sucesso
+      response.status(200).json({ message: 'Tokens armazenados com sucesso!' })
+    } catch (error) {
+      console.error('Erro ao obter os tokens:', error)
+      response
+        .status(500)
+        .json({ error: 'Erro ao processar o callback do Google.' })
+    }
   }
   
 }

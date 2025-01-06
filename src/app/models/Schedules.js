@@ -11,8 +11,10 @@ class Schedules extends Model {
         },
         doctor_id: Sequelize.UUID,
         date: Sequelize.STRING,
-        hours: Sequelize.STRING,
-        state_schedules: STRING
+        start_time: Sequelize.TIME,
+        end_time: Sequelize.TIME,
+        state_schedules: STRING,
+        google_event_id: Sequelize.STRING,
       },
       {
         sequelize,

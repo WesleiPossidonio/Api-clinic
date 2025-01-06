@@ -10,8 +10,7 @@ class ConsultationData extends Model {
           primaryKey: true,
         },
         doctor_id: Sequelize.UUID,
-        consultation_hours: Sequelize.STRING,
-        consultation_date: Sequelize.STRING,
+        schedules_id: Sequelize.UUID,
         patients_name: Sequelize.STRING,
         email_client: Sequelize.STRING,
         patients_cpf: Sequelize.STRING,
@@ -30,6 +29,11 @@ class ConsultationData extends Model {
       foreignKey: 'doctor_id', 
       as: 'doctor',
     });
+
+    this.hasMany(models.Schedules, {
+      foreignKey: 'id',
+      as: 'list_availability',
+    })
   }
 }
 

@@ -20,13 +20,15 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
-      consultation_hours: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      consultation_date: {
-        type: Sequelize.STRING,
-        allowNull: false,
+      schedules_id: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        references: {
+          model: 'schedules',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
       patients_name: {
         type: Sequelize.STRING,

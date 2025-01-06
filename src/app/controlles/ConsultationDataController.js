@@ -3,12 +3,20 @@ import ConsultationData from '../models/ConsultationData';
 import Doctors from '../models/Doctors';
 import Schedules from '../models/Schedules';
 
+import { google } from 'googleapis'
+
+const calendar = google.calendar('v3')
+const oauth2Client = new google.auth.OAuth2(
+  process.env.CLIENT_ID,
+  process.env.CLIENT_SECRET,
+  process.env.REDIRECT_URI,
+)
+
 class ConsultationDataController {
   async store(request, response) {
     const schema = Yup.object().shape({
       doctor_id: Yup.string().required(),
-      consultation_hours: Yup.string().required(),
-      consultation_date: Yup.string().required(),
+      schedules_id: Yup.string().required(),
       patients_name: Yup.string().required(),
       email_client: Yup.string().email().required(),
       patients_cpf: Yup.string().required(),
@@ -23,8 +31,7 @@ class ConsultationDataController {
 
     const {
       doctor_id,
-      consultation_date,
-      consultation_hours,
+      schedules_id,
       patients_name,
       email_client,
       patients_cpf,
@@ -32,33 +39,56 @@ class ConsultationDataController {
     } = request.body;
 
     // Verificar se o doutor existe
-    const doctorExists = await Doctors.findOne({
-      where: { id: doctor_id },
-    });
+    const doctorExists = await Doctors.findByPk(doctorId)
 
     if (!doctorExists) {
       return response.status(400).json({ error: 'Doutor Não Encontrado' });
     }
 
+    const dataSchedules = await Schedules.findByPk(schedules_id)
     // Verificar se o horário está disponível na tabela de horários
-    const scheduleExists = await Schedules.findOne({
-      where: {
-        doctor_id,
-        date: consultation_date,
-        hours: consultation_hours,
-        state_schedules: 'Disponivel', // Supondo que esse campo indique se o horário está livre
-      },
-    });
 
-    if (!scheduleExists) {
-      return response.status(400).json({ error: 'Horário não disponível para consulta.' });
+    if (!dataSchedules || dataSchedules.status !== 'disponível') {
+      return response
+        .status(400)
+        .json({ message: 'Este horário já está indisponível.' })
+    }
+
+    oauth2Client.setCredentials({
+      access_token: doctor.google_access_token,
+      refresh_token: doctor.google_refresh_token,
+    })
+
+    try {
+      // Obtém o evento no Google Calendar e atualiza os dados
+      const calendarEvent = await calendar.events.get({
+        auth: oauth2Client,
+        calendarId: doctorExists.google_calendar_email,
+        eventId: dataSchedules.google_event_id,
+      })
+
+      calendarEvent.data.summary = `Consulta com ${patients_name}`
+      calendarEvent.data.description = `Tipo de consulta: ${service_type}`
+      calendarEvent.data.attendees = [{ email: email_client }]
+
+      await calendar.events.update({
+        auth: oauth2Client,
+        calendarId: doctorExists.google_calendar_email,
+        eventId: dataSchedules.google_event_id,
+        resource: calendarEvent.data,
+      })
+    } catch (error) {
+      return response.status(500).json({
+        error: 'Erro ao atualizar o evento no Google Calendar =>',
+        // eslint-disable-next-line no-dupe-keys
+        error,
+      })
     }
 
     // Criar a consulta
     const newConsultationData = await ConsultationData.create({
       doctor_id,
-      consultation_date,
-      consultation_hours,
+      schedules_id,
       patients_name,
       email_client,
       patients_cpf,
@@ -67,14 +97,9 @@ class ConsultationDataController {
 
     // Atualizar a tabela Schedules para marcar o horário como "indisponível"
     await Schedules.update(
-      { state_schedules: 'Indisponivel' }, // Atualiza o estado do horário para indisponível
-      {
-        where: {
-          doctor_id,
-          date: consultation_date,
-          hours: consultation_hours,
-        },
-      }
+      { state_schedules: 'indisponível' },
+      { where: { id: availabilityId } },
+    
     );
 
     return response.status(201).json(newConsultationData);
